@@ -1,0 +1,7 @@
+node_modules/
+.env
+.dev.vars
+.brain.db*
+.wrangler/
+backups/
+.serena/

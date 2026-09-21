@@ -1,0 +1,215 @@
+name = "brain-agent"
+main = "src/worker.ts"
+compatibility_date = "2026-09-01"
+# Core uses web-standard APIs only; do NOT enable nodejs_compat.
+compatibility_flags = []
+
+[[d1_databases]]
+binding = "DB"
+database_name = "brain-agent"
+# Paste the id printed by `npx wrangler d1 create brain-agent`.
+database_id = "979d0283-e336-4ba2-b4a7-0cd91a76b34d"
+migrations_dir = "migrations"
+
+[triggers]
+# One cron drives every job; the `jobs` table decides what is actually due.
+crons = ["* * * * *"] # every minute; the jobs table decides what is actually due, so short reminders can fire on time
+
+# Non-secret values only. Secrets are set with `npx wrangler secret put <NAME>`:
+#   GITHUB_TOKEN_READ  GITHUB_TOKEN_VAULT  ADMIN_TOKEN  OPENROUTER_KEY
+#   TELEGRAM_TOKEN  TELEGRAM_WEBHOOK_SECRET  TELEGRAM_WEBHOOK_PATH
+#   WHATSAPP_TOKEN  WHATSAPP_PHONE_ID  WHATSAPP_APP_SECRET  WHATSAPP_VERIFY_TOKEN
+#   GMAIL_CLIENT_ID  GMAIL_CLIENT_SECRET  GMAIL_REFRESH_TOKEN
+[vars]
+VAULT_REPO = "rishcx/brain-vault"
+VAULT_BRANCH = "main"
+# Phone editor at /login and /edit. Keep "0" until site/README.md step 6; every /login and /edit route then 404s.
+EDIT_ENABLED = "0"
+# Same shape as brain.config.json. Keep the local (omniroute) entry out of here: the
+# Worker drops it anyway, but there is no reason to ship it.
+BRAIN_CONFIG = '''
+{
+  "timezone": "Asia/Kolkata",
+  "github": {
+    "maxRepos": 15,
+    "repos": [],
+    "involvement": {
+      "enabled": true,
+      "maxPerBucket": 8
+    }
+  },
+  "reminders": {
+    "offsets": [
+      "7d",
+      "2d",
+      "24h",
+      "3h",
+      "0"
+    ],
+    "quietHours": {
+      "start": "22:00",
+      "end": "08:00"
+    },
+    "dueHourLocal": 9,
+    "rules": [
+      {
+        "id": "flight",
+        "offsets": [
+          "24h"
+        ],
+        "keywords": [
+          "flight",
+          "boarding",
+          "airline",
+          "pnr",
+          "indigo",
+          "vistara",
+          "air india",
+          "departure"
+        ],
+        "needsTime": true
+      },
+      {
+        "id": "github",
+        "offsets": [
+          "24h"
+        ],
+        "keywords": [],
+        "sources": [
+          "github"
+        ]
+      },
+      {
+        "id": "assignment",
+        "offsets": [
+          "2h"
+        ],
+        "keywords": [
+          "assignment",
+          "submission",
+          "submit",
+          "viva",
+          "lab report",
+          "quiz",
+          "exam",
+          "practical"
+        ]
+      }
+    ]
+  },
+  "tasks": {
+    "enabled": true,
+    "maxPerDay": 50,
+    "rolloverLocalTime": "03:00"
+  },
+  "chat": {
+    "enabled": true,
+    "persona": "Brain",
+    "memory": {
+      "verbatimChars": 2400,
+      "summaryChars": 600,
+      "summariseAboveChars": 3000,
+      "retainDays": 3
+    },
+    "context": {
+      "snapshotChars": 3000,
+      "notesChars": 2800,
+      "userChars": 1000
+    },
+    "maxReplyTokens": 400,
+    "engine": "v3"
+  },
+  "index": {
+    "batch": 15,
+    "maxNotes": 2000
+  },
+  "gmail": {
+    "enabled": false,
+    "query": "newer_than:14d -category:promotions",
+    "maxMessages": 50
+  },
+  "channels": {
+    "telegram": {
+      "enabled": true,
+      "allowedChatIds": [
+        "1201232794"
+      ]
+    },
+    "whatsapp": {
+      "enabled": true,
+      "allowedWaIds": [
+        "919799247161"
+      ],
+      "templateName": "deadline_reminder"
+    }
+  },
+  "qa": {
+    "maxNotes": 12,
+    "maxChars": 8000
+  },
+  "brain": {
+    "budgetMs": 12000,
+    "entries": [
+      {
+        "kind": "openrouter",
+        "name": "openrouter-paid",
+        "baseUrl": "https://openrouter.ai/api/v1",
+        "keyEnv": "OPENROUTER_KEY",
+        "local": false,
+        "models": [
+          "deepseek/deepseek-v4.1-flash"
+        ],
+        "purposes": [
+          "compose",
+          "summary"
+        ],
+        "extraBody": {
+          "reasoning": {
+            "enabled": false
+          },
+          "provider": {
+            "sort": "throughput"
+          }
+        }
+      },
+      {
+        "kind": "groq",
+        "name": "groq",
+        "baseUrl": "https://api.groq.com/openai/v1",
+        "keyEnv": "GROQ_KEY",
+        "local": false,
+        "jsonMode": true,
+        "models": [
+          "qwen/qwen3.8-27b",
+          "openai/gpt-oss-120b",
+          "openai/gpt-oss-20b"
+        ]
+      },
+      {
+        "kind": "openrouter",
+        "name": "openrouter",
+        "baseUrl": "https://openrouter.ai/api/v1",
+        "keyEnv": "OPENROUTER_KEY",
+        "local": false,
+        "models": [
+          "qwen/qwen3.8-27b:free",
+          "nex-agi/nex-n2.5-pro:free",
+          "nvidia/nemotron-3-super-120b-a12b:free",
+          "google/gemma-4-31b-it:free"
+        ]
+      },
+      {
+        "kind": "deterministic",
+        "name": "deterministic",
+        "local": false,
+        "models": []
+      }
+    ],
+    "dailyBudget": {
+      "groq": 900,
+      "openrouter": 900,
+      "openrouter-paid": 400
+    }
+  }
+}
+'''

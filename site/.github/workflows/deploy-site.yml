@@ -1,0 +1,57 @@
+# Lives in the VAULT repo (owner copies it per site/README.md). Secret NAMES only.
+name: deploy-site
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-site
+  cancel-in-progress: true
+
+env:
+  QUARTZ_REF: v5.0.0 # VERIFY newest v5 tag before first run (PLACEHOLDER-VERIFY)
+  NODE_VERSION: "22"
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # SAFETY INTERLOCK: Cloudflare Pages sites are PUBLIC by default. This job stays skipped until the owner has
+    # verified Cloudflare Access is in front of the site (site/README.md step 5) and then sets the repo variable
+    # ACCESS_CONFIRMED=true. Without it, a push to main deploys nothing.
+    if: ${{ vars.ACCESS_CONFIRMED == 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Fetch Quartz at the pinned ref
+        run: git clone --depth 1 --branch "$QUARTZ_REF" https://github.com/jackyzha0/quartz.git _q
+      - name: Copy configs and content
+        run: |
+          cp quartz/quartz.config.ts quartz/quartz.layout.ts _q/
+          mkdir -p _q/content
+          # vault markdown only; never quartz/, .github/, .obsidian/, _q/
+          find . -name '*.md' -not -path './quartz/*' -not -path './.github/*' -not -path './.obsidian/*' -not -path './_q/*' -not -path './node_modules/*' -not -path './Threads/*' -not -path './Gmail/*' -not -path './Inbox/*' -not -path './Meta/*' -print0 \
+            | while IFS= read -r -d '' f; do mkdir -p "_q/content/$(dirname "$f")"; cp "$f" "_q/content/$f"; done
+      - name: Build
+        working-directory: _q
+        run: |
+          npm ci
+          npx quartz build
+      - name: Add mind map
+        run: |
+          cp static/mindmap.html _q/public/mindmap.html
+          if [ -f _q/content/Mindmap/index.md ]; then cp _q/content/Mindmap/index.md _q/public/mindmap-source.md; else echo "# Brain" > _q/public/mindmap-source.md; fi
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy _q/public --project-name=${{ vars.CF_PAGES_PROJECT }}

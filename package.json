@@ -1,0 +1,20 @@
+{
+  "name": "brain-agent",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "cli": "node --env-file-if-exists=.env src/cli.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test 'src/**/*.test.ts'",
+    "eval": "node --env-file-if-exists=.env src/node/eval/run.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^5.9.0",
+    "wrangler": "^4.135.0"
+  }
+}

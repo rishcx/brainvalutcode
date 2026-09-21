@@ -1,0 +1,202 @@
+{
+  "timezone": "Asia/Kolkata",
+  "github": {
+    "maxRepos": 15,
+    "repos": [],
+    "involvement": {
+      "enabled": true,
+      "maxPerBucket": 8
+    }
+  },
+  "brain": {
+    "budgetMs": 25000,
+    "cacheTtlMs": 86400000,
+    "entries": [
+      {
+        "kind": "omniroute",
+        "name": "omniroute",
+        "baseUrl": "http://localhost:20128/v1",
+        "keyEnv": "OMNIROUTE_KEY",
+        "local": true,
+        "models": [
+          "gemini-3-pro",
+          "gemini-3-flash"
+        ]
+      },
+      {
+        "kind": "openrouter",
+        "name": "openrouter-paid",
+        "baseUrl": "https://openrouter.ai/api/v1",
+        "keyEnv": "OPENROUTER_KEY",
+        "local": false,
+        "models": [
+          "deepseek/deepseek-v4.1-flash"
+        ],
+        "purposes": [
+          "compose",
+          "summary"
+        ],
+        "extraBody": {
+          "reasoning": {
+            "enabled": false
+          },
+          "provider": {
+            "sort": "throughput"
+          }
+        }
+      },
+      {
+        "kind": "groq",
+        "name": "groq",
+        "baseUrl": "https://api.groq.com/openai/v1",
+        "keyEnv": "GROQ_KEY",
+        "local": false,
+        "jsonMode": true,
+        "models": [
+          "qwen/qwen3.8-27b",
+          "openai/gpt-oss-120b",
+          "openai/gpt-oss-20b"
+        ]
+      },
+      {
+        "kind": "openrouter",
+        "name": "openrouter",
+        "baseUrl": "https://openrouter.ai/api/v1",
+        "keyEnv": "OPENROUTER_KEY",
+        "local": false,
+        "models": [
+          "qwen/qwen3.8-27b:free",
+          "nex-agi/nex-n2.5-pro:free",
+          "nvidia/nemotron-3-super-120b-a12b:free",
+          "google/gemma-4-31b-it:free"
+        ]
+      },
+      {
+        "kind": "deterministic",
+        "name": "deterministic",
+        "local": false,
+        "models": []
+      }
+    ],
+    "dailyBudget": {
+      "groq": 900,
+      "openrouter": 900,
+      "openrouter-paid": 400
+    }
+  },
+  "reminders": {
+    "offsets": [
+      "7d",
+      "2d",
+      "24h",
+      "3h",
+      "0"
+    ],
+    "quietHours": {
+      "start": "22:00",
+      "end": "08:00"
+    },
+    "dueHourLocal": 9,
+    "rules": [
+      {
+        "id": "flight",
+        "offsets": [
+          "24h"
+        ],
+        "keywords": [
+          "flight",
+          "boarding",
+          "airline",
+          "pnr",
+          "indigo",
+          "vistara",
+          "air india",
+          "departure"
+        ],
+        "needsTime": true
+      },
+      {
+        "id": "github",
+        "offsets": [
+          "24h"
+        ],
+        "keywords": [],
+        "sources": [
+          "github"
+        ]
+      },
+      {
+        "id": "assignment",
+        "offsets": [
+          "2h"
+        ],
+        "keywords": [
+          "assignment",
+          "submission",
+          "submit",
+          "viva",
+          "lab report",
+          "quiz",
+          "exam",
+          "practical"
+        ]
+      }
+    ]
+  },
+  "gmail": {
+    "enabled": false,
+    "query": "newer_than:14d -category:promotions",
+    "maxMessages": 50
+  },
+  "channels": {
+    "telegram": {
+      "enabled": true,
+      "allowedChatIds": [
+        "1201232794"
+      ]
+    },
+    "whatsapp": {
+      "enabled": true,
+      "allowedWaIds": [
+        "919799247161"
+      ],
+      "templateName": "deadline_reminder"
+    },
+    "defaultChannel": "telegram"
+  },
+  "qa": {
+    "maxNotes": 12,
+    "maxChars": 8000
+  },
+  "tasks": {
+    "enabled": true,
+    "maxPerDay": 50,
+    "rolloverLocalTime": "03:00"
+  },
+  "chat": {
+    "enabled": true,
+    "persona": "Brain",
+    "memory": {
+      "verbatimChars": 2400,
+      "summaryChars": 600,
+      "summariseAboveChars": 3000,
+      "retainDays": 3
+    },
+    "context": {
+      "snapshotChars": 3000,
+      "notesChars": 2800,
+      "userChars": 1000
+    },
+    "maxReplyTokens": 400,
+    "transcript": "summary",
+    "engine": "v3",
+    "dialogTtlMin": 10,
+    "llmBudgetMs": 9000,
+    "perAttemptMs": 4000,
+    "traceRetainDays": 14
+  },
+  "index": {
+    "batch": 15,
+    "maxNotes": 2000
+  }
+}

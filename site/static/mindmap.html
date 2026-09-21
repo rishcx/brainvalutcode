@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Mind map</title>
+  <style>html,body{margin:0;height:100%}svg{width:100vw;height:100vh}</style>
+  <!-- PLACEHOLDER-VERIFY: run site/scripts/verify.sh and replace each sha384-FILL with the printed
+       hash. Versions are pinned (never @latest); confirm they still exist on jsDelivr. -->
+  <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js" integrity="sha384-FILL" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/markmap-lib@0.18.12/dist/browser/index.iife.min.js" integrity="sha384-FILL" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/markmap-view@0.18.12/dist/browser/index.js" integrity="sha384-FILL" crossorigin="anonymous"></script>
+</head>
+<body>
+  <svg id="mm"></svg>
+  <script>
+    (async () => {
+      const res = await fetch("./mindmap-source.md", { credentials: "same-origin" });
+      const md = res.ok ? await res.text() : "# Brain\n## (mind map unavailable)";
+      const { Transformer } = window.markmap;
+      const { root } = new Transformer().transform(md);
+      window.markmap.Markmap.create("#mm", undefined, root);
+      // textContent only: no innerHTML anywhere on this page.
+    })();
+  </script>
+</body>
+</html>
